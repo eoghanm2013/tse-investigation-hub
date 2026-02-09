@@ -1,0 +1,266 @@
+# TSE Investigation Hub - Cursor Rules
+
+## Context
+This workspace is for Technical Support Engineers (TSEs) at Datadog. TSEs work directly with customers to diagnose and resolve technical issues. When stuck, they escalate to Technical Escalation Engineers (TEEs) who determine if it's a product bug requiring engineering attention.
+
+## Role & Goal
+TSEs are the front line of customer support. The goal is to:
+1. **Diagnose** customer issues quickly
+2. **Solve** problems using known solutions and troubleshooting
+3. **Communicate** clearly with customers
+4. **Escalate** when necessary (not spend days on something that needs TEE/engineering)
+
+## API Access Constraints
+
+### Zendesk
+- **READ/WRITE by default** — TSEs actively work tickets
+- Can view, update, and comment on tickets
+- **Always confirm before adding PUBLIC comments** (customer-facing)
+- Internal comments are safe for investigation notes
+
+### Atlassian (JIRA & Confluence)
+- **READ-ONLY by default** for searching
+- **WRITE when creating escalations** — confirm before creating JIRA tickets
+- Use JIRA to reference existing engineering tickets
+- Use Confluence for internal documentation
+
+### GitHub
+- **READ-ONLY** — Never create branches, commits, PRs, issues
+- Use for searching Datadog codebases during investigations
+
+### Slack
+- When asked to check a Slack thread or given a Slack URL (dd.slack.com), **always use Glean search** to find the content
+- Never attempt direct browser access to Slack URLs — they require authentication and won't work
+- Slack messages are indexed in Glean and accessible through search
+
+## Investigation Workflow
+
+When asked to investigate a Zendesk ticket:
+
+### Step 1: Fetch the Ticket
+Use MCP to pull the full ticket details including description and comments.
+
+### Step 2: Assess Available Information
+Check what the customer has provided:
+- **Environment**: Datadog Agent version, host OS, runtime versions, deployment method
+- **Symptoms**: Error messages, unexpected behavior, what changed
+- **Reproduction**: When it happens, how often, any patterns
+- **Impact**: How many hosts/services affected, business impact
+- **Attempts**: What they've already tried
+
+**Be practical** — not every case needs everything. Judge what's actually needed.
+
+### Step 3: Search for Known Solutions
+**Pattern Recognition First:**
+1. Search for similar historical cases first (search by symptoms/patterns, not just ticket numbers)
+2. Check if this matches a known pattern from previous investigations
+3. If pattern found, state: "This matches [pattern] from ZD-XXXXX" and adapt the solution
+4. Only do full greenfield investigation if no pattern matches
+
+**Build pattern knowledge:**
+- False positive patterns (e.g., common misconfigurations)
+- Common API pagination mistakes
+- Configuration gaps (missing environment variables)
+- Document these patterns in `/docs/` for future reference
+
+**Resources to check:**
+- Check `solutions/known-issues.md` for tracked product bugs
+- Search `archive/` for similar historical cases
+- Search Confluence for troubleshooting docs
+- Look for related JIRA tickets (both customer escalations and engineering bugs)
+
+### Step 4: Troubleshooting Strategy
+- Start with most likely causes (recent changes, common issues)
+- Request specific missing info (don't shotgun 20 questions)
+- Test hypotheses one at a time
+- Document what you try in `cases/ZD-XXXXX/notes.md`
+
+### Step 5: Risk Assessment for Customer-Facing Changes
+Before recommending configuration changes to customers:
+
+**Critical Questions:**
+- Is this a production environment?
+- What happens if this breaks the application?
+- Can this change be easily reverted?
+- Is there a safer way to test this (staging environment)?
+- Have we seen this solution work for similar cases?
+
+**Red Flags:**
+- Reducing resource limits → may cause capacity/performance issues
+- Changing core application settings → may break functionality
+- Disabling security features → may create vulnerabilities
+- "Try restarting everything" → may cause downtime
+
+**Better Approaches:**
+- Test in staging/dev first if possible
+- Make one change at a time (easier to identify what worked/failed)
+- Provide rollback instructions upfront
+- Start with least invasive solutions
+- When uncertain about production impact → escalate
+
+**Remember:** The customer trusts your guidance. A bad recommendation can cause downtime, data loss, or security issues.
+
+**Risk Callouts (Always Include):**
+When recommending configuration changes or actions to customers:
+- **Environment:** Explicitly state prod vs non-prod vs dev
+- **Risk level:** 🟢 LOW / 🟡 MEDIUM / 🔴 HIGH with justification
+- **What could go wrong:** Specific failure scenarios (not just "might break")
+- **Rollback plan:** How to undo the change step-by-step
+- **Testing approach:** Suggest safer validation methods when possible
+
+**Example:**
+> "I recommend adjusting the agent check interval to 30s.
+> 
+> **Environment:** This change should be tested in staging first
+> **Risk Level:** 🟡 MEDIUM - May temporarily increase metric gaps if agent restarts
+> **Rollback:** Revert datadog.yaml and restart agent
+> **What could go wrong:** Metrics may arrive less frequently, dashboards may show gaps
+> **Testing:** Try on 1-2 non-critical hosts first, monitor for 1 hour"
+
+**Real-World Lesson:** In past cases, seemingly logical configuration changes (like reducing check intervals to "reduce overhead" or adjusting worker counts) have caused unexpected issues. Always consider the full impact and test incrementally. When in doubt about production changes, escalate for a second opinion.
+
+### Step 6: Communication Guidelines
+
+**Brief-First Approach:**
+When communicating with customers:
+1. **Start with TL;DR** (2-3 sentences maximum) - What's happening and next steps
+2. **Action items first** — What they need to do (or what you're doing)
+3. **Explanation second** — Why this is happening (keep it simple)
+4. **Technical details last** — Only if necessary, in internal notes
+
+**Customer-facing communication should be:**
+- **Clear**: No jargon, explain technical terms
+- **Actionable**: Specific steps, not vague suggestions
+- **Empathetic**: Acknowledge their frustration/impact
+- **Professional**: Friendly but not overly casual
+- **Concise**: Don't make it too long
+- **Human**: Avoid overly formal or AI-like language
+- **Direct**: Get to the point quickly
+
+**Formatting tips:**
+- Use **bold** for emphasis on key points
+- Use bullet points for steps or lists
+- Don't use headers to make text larger in customer messages
+- Break up long paragraphs
+
+**Use templates from `templates/customer-communication/` for:**
+- Initial acknowledgment
+- Requesting additional information
+- Providing solutions/workarounds
+- Escalation notifications
+- Resolution summaries
+
+### Step 7: Escalation Criteria
+
+**Escalate to TEE when:**
+- Issue appears to be a product bug (consistent, reproducible, unexpected behavior)
+- Workarounds aren't viable for customer's use case
+- Issue is beyond TSE scope (deep product internals, requires code investigation)
+- You've spent 2+ days without significant progress
+- Customer is high-priority and issue is business-critical
+
+**Before escalating:**
+- Document everything tried in `cases/ZD-XXXXX/notes.md`
+- Collect all relevant logs, configs, reproduction steps
+- Check if similar JIRA tickets already exist
+- Summarize for TEE using `templates/escalation/escalation-template.md`
+
+**Create JIRA escalation:**
+> "Create JIRA escalation ticket for ZD-12345"
+
+Cursor will help create the SCRS ticket with proper formatting.
+
+## Folder Structure
+
+```
+tse-investigation-hub/
+├── cases/              # Active customer cases (ZD-XXXXX folders)
+│   └── .template/      # Template for new cases
+├── archive/            # Archived cases by month (MM-YYYY/)
+├── docs/               # Product documentation
+│   ├── apm/
+│   ├── infrastructure/
+│   ├── logs/
+│   ├── rum/
+│   ├── synthetics/
+│   ├── security/
+│   ├── network/
+│   ├── platform/
+│   └── common/
+├── solutions/          # Known issues and workarounds
+├── templates/          # Customer communication & escalation templates
+├── reference/          # Reference materials
+└── scripts/            # Utility scripts (zendesk_client.py, jira_client.py)
+```
+
+## Product Areas
+- **APM** — Application Performance Monitoring, distributed tracing, profiling
+- **Infrastructure** — Host monitoring, containers, Kubernetes, agent
+- **Logs** — Log management, pipelines, parsing, archives
+- **RUM** — Real User Monitoring, Session Replay, browser SDK
+- **Synthetics** — Synthetic monitoring, API tests, browser tests
+- **Security** — AppSec, SIEM, CWS, CSPM, Vulnerability Management
+- **Network** — Network Performance Monitoring, NetFlow, DNS
+- **Platform** — Billing, API, authentication, SSO, integrations, dashboards
+
+## Tone & Approach
+
+### With Customers (via Zendesk):
+- Be empathetic and professional
+- Explain things clearly without condescension
+- Set realistic expectations
+- Acknowledge impact on their business
+- Provide regular updates even if no solution yet
+
+### With Cursor (investigation):
+- Be practical and solution-focused
+- Don't overthink simple issues
+- Use historical data to find patterns
+- Document what works for future cases
+
+### With TEEs (escalation):
+- Provide all context (environment, logs, attempts)
+- Be clear about what you've ruled out
+- Include customer impact and urgency
+- Don't feel bad about escalating — that's the process
+
+## Investigation Output Standards
+
+### Standardized File Structure
+For each case investigation, create ONLY these files:
+- **`README.md`** — Case metadata and quick reference
+- **`notes.md`** — Your detailed investigation (exhaustive, for your reference and future TSEs)
+- **`assets/`** — Folder for logs, screenshots, flares, configs
+
+**Do NOT create** multiple variations like `CUSTOMER_MESSAGE.md`, `MESSAGE_SHORT.md`, `SUMMARY.md`, `SOLUTION.md`, etc. unless explicitly requested. Keep it simple and use the templates.
+
+### Cleanup Practices
+- **Test artifacts:** After resolving a case, clean up any test scripts or temporary files you created
+- **Don't leave clutter:** If you created test configurations or reproduction scripts, remove them when done
+- **Archive when resolved:** Use `python3 scripts/zendesk_client.py archive [ID]` to move resolved cases to archive
+
+## Special Notes
+
+### Customer Data Protection
+- Never commit customer logs, configs, or PII to git
+- All `cases/` folders are gitignored
+- Use anonymized data in documentation
+- Clear sensitive data from screenshots
+
+### Time Management
+- Don't spend 3 days on something that should escalate after 4 hours
+- Some issues require TEE/engineering — that's okay
+- Balance thoroughness with efficiency
+- Prioritize high-impact customers
+
+### Solution Documentation
+When you solve something novel:
+- Document it in `solutions/`
+- Create troubleshooting guide in relevant `docs/` area
+- Share in team channels
+- Help future TSEs (and yourself) solve it faster next time
+
+---
+
+**Remember:** You're helping customers keep their systems running. Be thorough, be cautious with production changes, and don't hesitate to escalate when needed.
+
