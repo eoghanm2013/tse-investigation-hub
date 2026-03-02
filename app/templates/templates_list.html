@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Templates - TSE Hub{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-4xl mx-auto animate-in">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white tracking-tight">Response Templates</h1>
+        <p class="text-dd-text-dim mt-1 text-sm">Customer communication and escalation templates</p>
+    </div>
+
+    {% if categories %}
+    <div class="space-y-6">
+        {% for cat in categories %}
+        <div class="card overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-dd-border">
+                <h2 class="text-sm font-semibold text-white">{{ cat.name }}</h2>
+            </div>
+            <div class="divide-y divide-dd-border/50">
+                {% for f in cat.files %}
+                <a href="/templates/{{ cat.dir_name }}/{{ f.filename }}" class="block px-5 py-3 hover:bg-dd-surface-2/50 transition-colors group">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-purple-light transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="text-sm text-dd-text-muted group-hover:text-white transition-colors">{{ f.name }}</span>
+                        </div>
+                        <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-purple-light transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center">
+        <div class="w-12 h-12 bg-dd-surface-2 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-dd-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        </div>
+        <p class="text-white font-medium mb-1">No templates found</p>
+        <p class="text-sm text-dd-text-dim">Add templates to the <code class="text-dd-purple-light">templates/</code> directory.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

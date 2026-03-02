@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - TSE Hub{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-6xl mx-auto animate-in">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
+        <p class="text-dd-text-dim mt-1 text-sm">TSE customer support workspace</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="card stat-purple p-5">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-dd-purple/15 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-dd-purple-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-white tabular-nums">{{ cases|length }}</div>
+                    <div class="text-xs text-dd-text-dim font-medium">Active Cases</div>
+                </div>
+            </div>
+        </div>
+        <div class="card stat-green p-5">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-dd-green/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-dd-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-white tabular-nums">{{ total_archived }}</div>
+                    <div class="text-xs text-dd-text-dim font-medium">Archived</div>
+                </div>
+            </div>
+        </div>
+        <div class="card stat-amber p-5">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-dd-amber/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-dd-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-white tabular-nums">{{ known_issues_count }}</div>
+                    <div class="text-xs text-dd-text-dim font-medium">Known Issues</div>
+                </div>
+            </div>
+        </div>
+        <div class="card stat-blue p-5">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-dd-blue/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-dd-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-white tabular-nums">{{ archive_months|length }}</div>
+                    <div class="text-xs text-dd-text-dim font-medium">Archive Months</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Active Cases -->
+        <div class="lg:col-span-2">
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-dd-border flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-white">Active Cases</h2>
+                    <a href="/cases" class="text-xs text-dd-purple-light hover:text-white transition-colors font-medium">View all</a>
+                </div>
+                <div class="divide-y divide-dd-border/50">
+                    {% for c in cases[:10] %}
+                    <a href="/case/{{ c.key }}" class="block px-5 py-3 hover:bg-dd-surface-2/50 transition-colors group">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-sm font-mono font-semibold text-dd-purple-light group-hover:text-white transition-colors">{{ c.key }}</span>
+                                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0
+                                        {% if c.status == 'new' %}bg-dd-purple-light
+                                        {% elif c.status == 'investigating' %}bg-dd-blue
+                                        {% elif c.status == 'waiting-on-customer' %}bg-dd-amber
+                                        {% elif c.status == 'escalated' %}bg-dd-red
+                                        {% elif c.status == 'resolved' %}bg-dd-green
+                                        {% endif %}" title="{{ c.status }}"></span>
+                                    {% if c.product_area != 'other' %}
+                                    <span class="badge badge-dim">{{ c.product_area|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm text-dd-text-muted mt-0.5 truncate">{{ c.title }}</div>
+                            </div>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                {% if c.last_modified %}
+                                <span class="text-xs text-dd-text-dim tabular-nums">{{ c.last_modified.strftime('%b %d') }}</span>
+                                {% endif %}
+                                <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-purple-light transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% if not cases %}
+                    <div class="px-5 py-10 text-center">
+                        <div class="w-10 h-10 bg-dd-surface-2 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-5 h-5 text-dd-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </div>
+                        <p class="text-sm text-dd-text-muted">No active cases</p>
+                        <p class="text-xs text-dd-text-dim mt-1">Create a folder in <code class="text-dd-purple-light">cases/</code> to get started.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-5">
+            <!-- Quick Links -->
+            <div class="card p-4">
+                <h3 class="text-xs font-semibold text-dd-text-dim uppercase tracking-wider mb-3">Quick Links</h3>
+                <div class="space-y-1.5">
+                    <a href="/known-issues" class="flex items-center gap-2.5 px-2.5 py-2 text-sm text-dd-text-muted hover:text-white hover:bg-dd-surface-2 rounded-lg transition-colors group">
+                        <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                        Known Issues
+                    </a>
+                    <a href="/templates" class="flex items-center gap-2.5 px-2.5 py-2 text-sm text-dd-text-muted hover:text-white hover:bg-dd-surface-2 rounded-lg transition-colors group">
+                        <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        Response Templates
+                    </a>
+                    <a href="https://datadoghq.atlassian.net/jira/software/c/projects/SCRS/board" target="_blank"
+                       class="flex items-center gap-2.5 px-2.5 py-2 text-sm text-dd-text-muted hover:text-white hover:bg-dd-surface-2 rounded-lg transition-colors group">
+                        <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+                        SCRS Board
+                        <svg class="w-3 h-3 text-dd-text-dim ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                    <a href="/search" class="flex items-center gap-2.5 px-2.5 py-2 text-sm text-dd-text-muted hover:text-white hover:bg-dd-surface-2 rounded-lg transition-colors group">
+                        <svg class="w-4 h-4 text-dd-text-dim group-hover:text-dd-purple-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Search Everything
+                    </a>
+                </div>
+            </div>
+
+            <!-- Archive Preview -->
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-dd-border flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-white">Archive</h2>
+                    <a href="/archive" class="text-xs text-dd-purple-light hover:text-white transition-colors font-medium">View all</a>
+                </div>
+                <div class="divide-y divide-dd-border/50">
+                    {% for month in archive_months[:3] %}
+                    <div class="px-5 py-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-white">{{ month.name }}</span>
+                            <span class="badge badge-dim">{{ month.count }}</span>
+                        </div>
+                        <div class="space-y-1">
+                            {% for ticket in month.tickets[:3] %}
+                            <a href="/archive/{{ month.name }}/{{ ticket.key }}" class="flex items-center gap-2 py-0.5 group/ticket">
+                                <span class="text-[11px] font-mono text-dd-purple-light group-hover/ticket:text-white transition-colors flex-shrink-0">{{ ticket.key }}</span>
+                                <span class="text-[11px] text-dd-text-dim group-hover/ticket:text-dd-text-muted transition-colors truncate">{{ ticket.title }}</span>
+                            </a>
+                            {% endfor %}
+                            {% if month.tickets|length > 3 %}
+                            <span class="text-[11px] text-dd-text-dim">+{{ month.tickets|length - 3 }} more</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not archive_months %}
+                    <div class="px-5 py-8 text-center text-dd-text-dim text-xs">No archived tickets yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
