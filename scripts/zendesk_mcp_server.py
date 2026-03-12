@@ -231,7 +231,7 @@ class MCPServer:
                     per_page=arguments.get("per_page", 25)
                 )
             elif name == "zendesk_get_comments":
-                result = self.client.get_comments(arguments["ticket_id"])
+                result = self.client.get_ticket_comments(arguments["ticket_id"])
             elif name == "zendesk_add_comment":
                 result = self.client.add_comment(
                     ticket_id=arguments["ticket_id"],

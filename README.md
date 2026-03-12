@@ -1,230 +1,63 @@
-# TSE Investigation Workspace
+# TSE Investigation Hub
 
-Centralized workspace for Technical Support Engineers working on Datadog customer cases.
+Centralized Cursor workspace for Datadog Technical Support Engineers. Investigate customer tickets, search internal docs, escalate to engineering -- all from one place.
 
-> **New here?** Follow the **[Setup Guide](SETUP.md)** for step-by-step instructions.
+## Setup (2 minutes)
 
----
+**Prerequisites:** [Cursor](https://cursor.com), Python 3.8+, Git
 
-## Quick Start
+1. **Clone and open**
+   ```bash
+   git clone git@github.com:YOUR_ORG/tse-investigation-hub.git
+   cd tse-investigation-hub
+   ```
+   Open the folder in Cursor.
 
-### 1. Clone/Create the workspace
-```bash
-cd ~/
-git clone git@github.com:YOUR_ORG/tse-investigation-hub.git
-# OR if starting fresh:
-mkdir tse-investigation-hub && cd tse-investigation-hub
-```
+2. **Tell Cursor: "Set me up"**
+   Cursor will ask for your tokens and configure everything automatically.
 
-### 2. Set up credentials
-```bash
-cp .env.example .env
-# Edit .env with your Zendesk, Atlassian, and GitHub tokens
-```
+3. **Restart Cursor** (Cmd+Q, then reopen)
 
-### 3. Configure MCP (Cursor AI)
-```bash
-cp .cursor/mcp.json.example .cursor/mcp.json
-# Edit .cursor/mcp.json with your tokens
-```
+That's it.
 
-### 4. Install dependencies
-```bash
-# Install uv (for MCP servers)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+### Where to get tokens
 
-### 5. Restart Cursor
-Quit completely (Cmd+Q) and reopen.
+| Token | Where |
+|-------|-------|
+| **Zendesk** | Admin Center > Apps and integrations > APIs > Zendesk API > Add API Token |
+| **Atlassian** | https://id.atlassian.com/manage-profile/security/api-tokens |
+| **GitHub** (optional) | https://github.com/settings/tokens?type=beta -- needs Contents + Metadata read; authorize SSO for DataDog org |
 
-### 6. Test it
-Ask Cursor:
-> "Use MCP to fetch Zendesk ticket 12345"
+## What you can do
 
----
+Ask Cursor things like:
+
+- *"Investigate Zendesk ticket 12345"* -- fetches the ticket, searches for similar cases, creates investigation notes
+- *"Search JIRA for open SCRS tickets"* -- queries escalation tickets
+- *"Search Confluence for APM troubleshooting"* -- finds internal docs
+- *"Draft a customer response for ZD-12345"* -- uses communication templates
 
 ## Structure
 
 ```
-tse-investigation-hub/
-├── .cursor/
-│   ├── mcp.json              # YOUR config (gitignored)
-│   └── mcp.json.example      # Template
-├── .cursorrules              # AI behavior for TSEs
-├── cases/                    # Active customer cases
-│   ├── .template/            # Template for new cases
-│   └── ZD-XXXXXX/            # One folder per ticket (gitignored)
-├── archive/                  # Archived cases by month (gitignored)
-├── docs/                     # Product documentation
-│   ├── apm/                  # Application Performance Monitoring
-│   ├── infrastructure/       # Infrastructure monitoring
-│   ├── logs/                 # Log management
-│   ├── rum/                  # Real User Monitoring
-│   ├── synthetics/           # Synthetic monitoring
-│   ├── security/             # Security products
-│   ├── network/              # Network monitoring
-│   ├── platform/             # Billing, API, auth
-│   └── common/               # Agent, integrations
-├── templates/                # Customer communication templates
-│   ├── customer-communication/
-│   └── escalation/
-├── solutions/                # Known issues & workarounds
-├── scripts/                  # Utility scripts
-└── reference/                # Reference materials
+cases/           Active investigations (ZD-XXXXX folders, gitignored)
+archive/         Resolved cases by month (gitignored)
+docs/            Product troubleshooting docs
+solutions/       Known issues and workarounds
+templates/       Customer communication and escalation templates
+scripts/         Utility scripts (Zendesk client, JIRA client, setup)
+reference/       JIRA project codes, internal references
 ```
 
----
+## Reconfiguring
 
-## Workflow
-
-### Starting a Case Investigation
-
-**Option 1: Ask Cursor**
-> "Investigate Zendesk ticket 12345"
-
-Cursor will:
-1. Fetch the ticket from Zendesk
-2. Assess what info you have
-3. Search for similar historical cases
-4. Create case notes in `cases/ZD-12345/`
-
-**Option 2: Manual**
+Need to update tokens? Tell Cursor *"reconfigure my workspace"* or run:
 ```bash
-cp -r cases/.template cases/ZD-12345
+python3 scripts/setup.py --reconfigure
 ```
-
-### During Investigation
-- Cursor pulls live Zendesk data via MCP
-- Drop logs, screenshots, flares into `cases/ZD-12345/assets/`
-- Document findings in `notes.md`
-- Search archive for similar past cases
-- Check `solutions/known-issues.md` for tracked bugs
-
-### Customer Communication
-Use templates from `templates/customer-communication/`:
-- Acknowledgment
-- Requesting information
-- Providing solution
-- Escalation notice
-
-### When to Escalate to TEE
-Check `docs/escalation-criteria.md` for guidance on:
-- When to escalate vs. continue troubleshooting
-- What info to include in escalation
-- How to create JIRA escalation ticket
-
-### Archiving Cases
-```bash
-python scripts/zendesk_client.py archive 12345
-```
-
----
-
-## API Access
-
-### Zendesk (Primary)
-- **READ/WRITE** access to customer tickets
-- View, update, comment on cases
-- Search ticket history
-
-### JIRA (For Escalations)
-- **READ-ONLY by default**
-- Create escalation tickets when needed
-- Reference existing engineering tickets
-
-### GitHub (For Research)
-- **READ-ONLY**
-- Search Datadog codebases during investigations
-
-### Confluence (Documentation)
-- **READ-ONLY**
-- Access internal documentation
-- Search troubleshooting guides
-
----
-
-## Product Areas
-
-| Area | Description |
-|------|-------------|
-| **APM** | Application Performance Monitoring, traces, profiling |
-| **Infrastructure** | Hosts, containers, agent installation |
-| **Logs** | Log management, pipelines, parsing |
-| **RUM** | Real User Monitoring, Session Replay |
-| **Synthetics** | Synthetic monitoring, API tests, browser tests |
-| **Security** | AppSec, SIEM, CWS, CSPM, Vulnerability Management |
-| **Network** | Network Performance Monitoring, NetFlow |
-| **Platform** | Billing, API, authentication, integrations |
-
----
-
-## Scripts
-
-### zendesk_client.py
-```bash
-# Get a ticket
-python scripts/zendesk_client.py get 12345
-
-# List open tickets
-python scripts/zendesk_client.py list --status open
-
-# Search tickets
-python scripts/zendesk_client.py search "priority:urgent"
-
-# Archive ticket
-python scripts/zendesk_client.py archive 12345
-```
-
-### jira_client.py
-```bash
-# Search for related escalations
-python scripts/jira_client.py search "status = Open AND labels = security"
-
-# Get escalation details
-python scripts/jira_client.py get SCRS-1234
-```
-
----
 
 ## Safety
 
-⚠️ **Customer Data Protection**
-- All case folders are gitignored
-- Never commit customer data, logs, or PII
-- Archive folders are gitignored
-- Credentials stay local
-
-📝 **Writing to Zendesk**
-- Cursor can update tickets and add comments
-- Always review before sending to customer
-- Use internal comments for investigation notes
-
----
-
-## Troubleshooting
-
-### MCP not loading
-1. Verify config: `cat .cursor/mcp.json`
-2. Check uvx: `~/.local/bin/uvx --version`
-3. Restart Cursor (Cmd+Q)
-
-### Zendesk API errors
-| Code | Issue | Fix |
-|------|-------|-----|
-| 401 | Bad token | Regenerate API token |
-| 403 | No permissions | Check token is API token (not OAuth) |
-| 429 | Rate limited | Wait 60 seconds |
-
----
-
-## Contributing
-
-1. Document solutions in `solutions/`
-2. Create troubleshooting docs from resolved cases
-3. Share communication templates
-4. Keep product docs updated
-
----
-
-**Questions?** Ask in #support or open an issue on this repo.
-
+- All `cases/` and `archive/` folders are gitignored (customer data never committed)
+- Credentials stay local in `.env` (gitignored)
+- Cursor confirms before sending public comments to customers

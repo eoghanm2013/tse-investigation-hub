@@ -1,0 +1,75 @@
+---
+description: Guides first-time setup of the TSE Investigation Hub workspace
+alwaysApply: true
+---
+
+# Workspace Setup Detection
+
+Before starting any investigation work, check whether this workspace has been configured:
+
+1. Check if `.env` exists in the project root.
+2. If `.env` is **missing**, the workspace needs setup. Follow the setup flow below.
+3. If `.env` exists, skip setup -- the workspace is ready.
+
+# Setup Flow
+
+When `.env` does not exist, or the user asks to "set up", "get started", "configure", or "reconfigure" the workspace:
+
+## Step 1: Collect credentials
+
+Ask the user for these values (use the AskQuestion tool or chat):
+
+1. **Work email** -- their @datadoghq.com email address
+2. **Zendesk API token** -- generated at: Admin Center > Apps and integrations > APIs > Zendesk API > Add API Token
+3. **Atlassian API token** -- generated at: https://id.atlassian.com/manage-profile/security/api-tokens
+4. **GitHub PAT** (optional) -- generated at: https://github.com/settings/tokens?type=beta (needs Contents + Metadata read permissions; must authorize SSO for DataDog org)
+
+Do NOT ask for subdomains, domains, or JIRA project keys. Those are hardcoded for Datadog.
+
+## Step 2: Run the setup script
+
+Run the setup script with the collected credentials:
+
+```
+python3 scripts/setup.py \
+  --email "USER_EMAIL" \
+  --zendesk-token "ZENDESK_TOKEN" \
+  --atlassian-token "ATLASSIAN_TOKEN" \
+  --github-token "GITHUB_TOKEN"
+```
+
+Omit `--github-token` if the user skipped it.
+
+If the user already has a `.env` and wants to reconfigure, add `--reconfigure`.
+
+## Step 3: Post-setup instructions
+
+After the script succeeds, tell the user:
+
+1. **Restart Cursor** -- Quit completely with Cmd+Q (not just close the window), then reopen the workspace.
+2. **Verify** -- After restarting, try: "Search JIRA for open SCRS tickets" to confirm MCP servers loaded.
+
+## Glean (optional, user-level)
+
+If the user asks about Glean/Slack search, explain that Glean is configured at the user level, not the project level. They should add this to their **global** Cursor MCP config (`~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "glean_default": {
+      "type": "http",
+      "url": "https://datadog-be.glean.com/mcp/default"
+    }
+  }
+}
+```
+
+# Reconfiguring
+
+If the user needs to update tokens (expired, rotated, etc.), run the setup script with `--reconfigure`:
+
+```
+python3 scripts/setup.py --reconfigure --email "..." --zendesk-token "..." --atlassian-token "..." --github-token "..."
+```
+
+Then restart Cursor.
