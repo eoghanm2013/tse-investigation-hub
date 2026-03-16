@@ -663,6 +663,34 @@ def template_detail(category, filename):
     return render_template("template_detail.html", template=data, category=category)
 
 
+@app.route("/docs")
+def docs_page():
+    tree = get_docs_tree()
+    return render_template("docs.html", tree=tree)
+
+
+@app.route("/docs/<path:filepath>")
+def doc_detail(filepath):
+    doc_path = DOCS_DIR / filepath
+    if not doc_path.suffix:
+        doc_path = doc_path.with_suffix(".md")
+    data = read_md_file(doc_path)
+    if not data:
+        abort(404)
+    return render_template("doc_detail.html", doc=data, filepath=filepath)
+
+
+@app.route("/solutions/<filename>")
+def solution_detail(filename):
+    sol_path = SOLUTIONS_DIR / filename
+    if not sol_path.suffix:
+        sol_path = sol_path.with_suffix(".md")
+    data = read_md_file(sol_path)
+    if not data:
+        abort(404)
+    return render_template("solution_detail.html", solution=data, filename=filename)
+
+
 @app.route("/archive")
 def archive():
     months = get_archive_months()

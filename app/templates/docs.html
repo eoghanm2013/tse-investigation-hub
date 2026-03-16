@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Docs - TSE Hub{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-5xl mx-auto animate-in">
+    <div class="mb-4">
+        <h1 class="text-xl font-bold" style="color: #1A1A2E;">Documentation</h1>
+        <p class="text-dd-text-dim mt-0.5 text-xs">Product troubleshooting guides and reference docs</p>
+    </div>
+
+    {% if tree %}
+    <div class="space-y-3">
+        {% for item in tree recursive %}
+            {% if item.type == 'dir' %}
+            <div class="card overflow-hidden">
+                <div class="win-titlebar flex items-center justify-between">
+                    <span>{{ item.name.replace('-', ' ').replace('_', ' ').title() }}</span>
+                    <span class="badge" style="background: rgba(255,255,255,0.2); color: #FFF; border-color: rgba(255,255,255,0.3); font-size: 10px;">{{ item.children|length }}</span>
+                </div>
+                <div>
+                    {% for child in item.children %}
+                        {% if child.type == 'file' %}
+                        <a href="/docs/{{ child.path.replace('docs/', '') }}" class="alt-row block px-4 py-2.5 group" style="border-bottom: 1px solid #D8CCE8; text-decoration: none; color: inherit;">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-dd-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="text-[12px] text-dd-text-muted group-hover:text-[#632CA6]">{{ child.name.replace('-', ' ').replace('_', ' ').title() }}</span>
+                                </div>
+                                <span class="text-dd-text-dim group-hover:text-[#632CA6]">&rsaquo;</span>
+                            </div>
+                        </a>
+                        {% elif child.type == 'dir' %}
+                        <div class="px-4 py-2 border-b" style="border-color: #D8CCE8;">
+                            <div class="text-[11px] font-bold text-dd-text-dim uppercase tracking-wider mb-1">{{ child.name.replace('-', ' ').replace('_', ' ').title() }}</div>
+                            {% for subchild in child.children %}
+                                {% if subchild.type == 'file' %}
+                                <a href="/docs/{{ subchild.path.replace('docs/', '') }}" class="flex items-center gap-2 py-1 group" style="text-decoration: none; color: inherit;">
+                                    <svg class="w-3.5 h-3.5 text-dd-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="text-[12px] text-dd-text-muted group-hover:text-[#632CA6]">{{ subchild.name.replace('-', ' ').replace('_', ' ').title() }}</span>
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif item.type == 'file' %}
+            <div class="card overflow-hidden">
+                <div>
+                    <a href="/docs/{{ item.path.replace('docs/', '') }}" class="alt-row block px-4 py-2.5 group" style="border-bottom: 1px solid #D8CCE8; text-decoration: none; color: inherit;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-dd-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="text-[12px] text-dd-text-muted group-hover:text-[#632CA6]">{{ item.name.replace('-', ' ').replace('_', ' ').title() }}</span>
+                            </div>
+                            <span class="text-dd-text-dim group-hover:text-[#632CA6]">&rsaquo;</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-16">
+        <p class="text-xs font-bold" style="color: #1A1A2E;">No documentation found</p>
+        <p class="text-[11px] text-dd-text-dim mt-1">Add docs to the <code style="color: #632CA6;">docs/</code> directory.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
