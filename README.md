@@ -53,6 +53,10 @@ Need to add GitHub or update config? Tell Cursor *"reconfigure my workspace"* or
 python3 scripts/setup.py --reconfigure
 ```
 
+## Local Web UI
+
+Run `./app/run.sh` to launch a browser-based dashboard for browsing cases, archive, and docs without touching the terminal. It's entirely optional — the workspace works fully through Cursor alone — but gives a quick visual overview when you want one.
+
 ## Safety
 
 - All `cases/` and `archive/` folders are gitignored (customer data never committed)
